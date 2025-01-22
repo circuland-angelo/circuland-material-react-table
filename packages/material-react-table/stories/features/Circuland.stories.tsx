@@ -160,8 +160,12 @@ const data = [...Array(100)].map(() => ({
     'Discontinued',
   ]),
   quantity: faker.number.int({ min: 0, max: 1000 }),
-  unit_price: faker.number.float({ min: 1, max: 1000, precision: 0.01 }),
-  total_value: faker.number.float({ min: 1000, max: 100000, precision: 0.01 }),
+  unit_price: faker.number.float({ min: 1, max: 1000, fractionDigits: 2 }),
+  total_value: faker.number.float({
+    min: 1000,
+    max: 100000,
+    fractionDigits: 2,
+  }),
   supplier: faker.company.name(),
   supplier_contact: faker.phone.number(),
   last_ordered: faker.date.past().toISOString(),
@@ -218,6 +222,7 @@ export const CirculandFeatures = () => (
       // Show more rows per page by default
       pagination: {
         pageSize: 25,
+        pageIndex: 0,
       },
       // Initial sorting
       sorting: [
@@ -276,6 +281,7 @@ export const CirculandFeaturesWithCustomVisibility = () => (
       },
       pagination: {
         pageSize: 25,
+        pageIndex: 0,
       },
       sorting: [
         {
