@@ -78,6 +78,8 @@ export const MRT_TableHeadCellGrabHandle = <TData extends MRT_RowData>({
       onDragEnd={handleDragEnd}
       onDragStart={handleDragStart}
       table={table}
+      column={column}
+      is_hovered={hoveredColumn?.id === column.id}
     />
   );
 };

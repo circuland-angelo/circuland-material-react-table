@@ -1,62 +1,61 @@
 import { type DragEventHandler } from 'react';
 import IconButton, { type IconButtonProps } from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
-import { type MRT_RowData, type MRT_TableInstance } from '../../types';
+import {
+  type MRT_TableInstance,
+  type MRT_RowData,
+  type MRT_Column,
+} from '../../types';
 import { getCommonTooltipProps } from '../../utils/style.utils';
 import { parseFromValuesOrFunc } from '../../utils/utils';
 
 export interface MRT_GrabHandleButtonProps<TData extends MRT_RowData>
   extends IconButtonProps {
-  iconButtonProps?: IconButtonProps;
-  location?: 'column' | 'row';
-  onDragEnd: DragEventHandler<HTMLButtonElement>;
-  onDragStart: DragEventHandler<HTMLButtonElement>;
+  onDragEnd: (event: React.DragEvent<HTMLButtonElement>) => void;
+  onDragStart: (event: React.DragEvent<HTMLButtonElement>) => void;
   table: MRT_TableInstance<TData>;
+  column: MRT_Column<TData>;
+  is_hovered?: boolean;
 }
 
 export const MRT_GrabHandleButton = <TData extends MRT_RowData>({
-  location,
+  onDragEnd,
+  onDragStart,
   table,
+  column,
+  is_hovered,
   ...rest
 }: MRT_GrabHandleButtonProps<TData>) => {
   const {
     options: {
       icons: { DragHandleIcon },
       localization,
+      muiColumnDragHandleProps,
+      show_column_actions_on_hover,
     },
   } = table;
 
+  const iconButtonProps = {
+    ...parseFromValuesOrFunc(muiColumnDragHandleProps, { table, column }),
+    ...rest,
+  };
+
   return (
-    <Tooltip
-      {...getCommonTooltipProps('top')}
-      title={rest?.title ?? localization.move}
-    >
+    <Tooltip {...getCommonTooltipProps()} title={localization.move}>
       <IconButton
-        aria-label={rest.title ?? localization.move}
-        disableRipple
         draggable="true"
+        onDragEnd={onDragEnd}
+        onDragStart={onDragStart}
         size="small"
-        {...rest}
-        onClick={(e) => {
-          e.stopPropagation();
-          rest?.onClick?.(e);
-        }}
+        {...iconButtonProps}
         sx={(theme) => ({
-          '&:active': {
-            cursor: 'grabbing',
-          },
-          '&:hover': {
-            backgroundColor: 'transparent',
-            opacity: 1,
-          },
           cursor: 'grab',
-          m: '0 -0.1rem',
-          opacity: location === 'row' ? 1 : 0.5,
-          p: '2px',
-          transition: 'all 150ms ease-in-out',
-          ...(parseFromValuesOrFunc(rest?.sx, theme) as any),
+          height: '2rem',
+          opacity: show_column_actions_on_hover ? (is_hovered ? 1 : 0) : 0.3,
+          transition: 'opacity 150ms ease-in-out',
+          width: '2rem',
+          ...(parseFromValuesOrFunc(iconButtonProps?.sx, theme) as any),
         })}
-        title={undefined}
       >
         <DragHandleIcon />
       </IconButton>
