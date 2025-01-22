@@ -9,6 +9,7 @@ import {
 import { getCommonTooltipProps } from '../../utils/style.utils';
 import { parseFromValuesOrFunc } from '../../utils/utils';
 import { MRT_ColumnActionMenu } from '../menus/MRT_ColumnActionMenu';
+import { Box } from '@mui/material';
 
 export interface MRT_TableHeadCellColumnActionsButtonProps<
   TData extends MRT_RowData,
@@ -29,12 +30,14 @@ export const MRT_TableHeadCellColumnActionsButton = <
       icons: { MoreVertIcon },
       localization,
       muiColumnActionsButtonProps,
+      show_column_actions_on_hover,
     },
   } = table;
   const { column } = header;
   const { columnDef } = column;
 
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const [is_hovered, set_is_hovered] = useState(false);
 
   const handleClick = (event: MouseEvent<HTMLElement>) => {
     event.stopPropagation();
@@ -55,7 +58,11 @@ export const MRT_TableHeadCellColumnActionsButton = <
   };
 
   return (
-    <>
+    <Box
+      onMouseEnter={() => set_is_hovered(true)}
+      onMouseLeave={() => set_is_hovered(false)}
+      sx={{ display: 'inline-flex' }}
+    >
       <Tooltip
         {...getCommonTooltipProps('top')}
         title={iconButtonProps?.title ?? localization.columnActions}
@@ -71,7 +78,7 @@ export const MRT_TableHeadCellColumnActionsButton = <
             },
             height: '2rem',
             m: '-8px -4px',
-            opacity: 0.3,
+            opacity: show_column_actions_on_hover ? (is_hovered ? 1 : 0) : 0.3,
             transition: 'all 150ms',
             width: '2rem',
             ...(parseFromValuesOrFunc(iconButtonProps?.sx, theme) as any),
@@ -91,6 +98,6 @@ export const MRT_TableHeadCellColumnActionsButton = <
           table={table}
         />
       )}
-    </>
+    </Box>
   );
 };

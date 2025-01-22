@@ -9,6 +9,8 @@ import {
   type MRT_TableInstance,
 } from '../../types';
 import { parseFromValuesOrFunc } from '../../utils/utils';
+import { useState } from 'react';
+import { Box } from '@mui/material';
 
 export interface MRT_TableHeadCellSortLabelProps<TData extends MRT_RowData>
   extends TableSortLabelProps {
@@ -26,11 +28,13 @@ export const MRT_TableHeadCellSortLabel = <TData extends MRT_RowData>({
     options: {
       icons: { ArrowDownwardIcon, SyncAltIcon },
       localization,
+      show_column_actions_on_hover,
     },
   } = table;
   const { column } = header;
   const { columnDef } = column;
   const { isLoading, showSkeletons, sorting } = getState();
+  const [is_hovered, set_is_hovered] = useState(false);
 
   const isSorted = !!column.getIsSorted();
 
@@ -53,49 +57,62 @@ export const MRT_TableHeadCellSortLabel = <TData extends MRT_RowData>({
     : undefined;
 
   return (
-    <Tooltip placement="top" title={sortTooltip}>
-      <Badge
-        badgeContent={sorting.length > 1 ? column.getSortIndex() + 1 : 0}
-        overlap="circular"
-      >
-        <TableSortLabel
-          IconComponent={
-            !isSorted
-              ? (props) => (
-                  <SyncAltIcon
-                    {...props}
-                    direction={direction}
-                    style={{
-                      transform: 'rotate(-90deg) scaleX(0.9) translateX(-1px)',
-                    }}
-                  />
-                )
-              : ArrowDownwardIcon
-          }
-          active
-          aria-label={sortTooltip}
-          direction={direction}
-          onClick={(e) => {
-            e.stopPropagation();
-            header.column.getToggleSortingHandler()?.(e);
-          }}
-          {...rest}
-          sx={(theme) => ({
-            '.MuiTableSortLabel-icon': {
-              color: `${
-                theme.palette.mode === 'dark'
-                  ? theme.palette.text.primary
-                  : theme.palette.text.secondary
-              } !important`,
-            },
-            flex: '0 0',
-            opacity: isSorted ? 1 : 0.3,
-            transition: 'all 150ms ease-in-out',
-            width: '3ch',
-            ...(parseFromValuesOrFunc(rest?.sx, theme) as any),
-          })}
-        />
-      </Badge>
-    </Tooltip>
+    <Box
+      onMouseEnter={() => set_is_hovered(true)}
+      onMouseLeave={() => set_is_hovered(false)}
+      sx={{ display: 'inline-flex' }}
+    >
+      <Tooltip placement="top" title={sortTooltip}>
+        <Badge
+          badgeContent={sorting.length > 1 ? column.getSortIndex() + 1 : 0}
+          overlap="circular"
+        >
+          <TableSortLabel
+            IconComponent={
+              !isSorted
+                ? (props) => (
+                    <SyncAltIcon
+                      {...props}
+                      direction={direction}
+                      style={{
+                        transform:
+                          'rotate(-90deg) scaleX(0.9) translateX(-1px)',
+                      }}
+                    />
+                  )
+                : ArrowDownwardIcon
+            }
+            active
+            aria-label={sortTooltip}
+            direction={direction}
+            onClick={(e) => {
+              e.stopPropagation();
+              header.column.getToggleSortingHandler()?.(e);
+            }}
+            {...rest}
+            sx={(theme) => ({
+              '.MuiTableSortLabel-icon': {
+                color: `${
+                  theme.palette.mode === 'dark'
+                    ? theme.palette.text.primary
+                    : theme.palette.text.secondary
+                } !important`,
+              },
+              flex: '0 0',
+              opacity: show_column_actions_on_hover
+                ? isSorted || is_hovered
+                  ? 1
+                  : 0
+                : isSorted
+                  ? 1
+                  : 0.3,
+              transition: 'all 150ms ease-in-out',
+              width: '3ch',
+              ...(parseFromValuesOrFunc(rest?.sx, theme) as any),
+            })}
+          />
+        </Badge>
+      </Tooltip>
+    </Box>
   );
 };
