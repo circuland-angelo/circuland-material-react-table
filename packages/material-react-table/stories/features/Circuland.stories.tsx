@@ -1,6 +1,13 @@
 import { type Meta } from '@storybook/react';
 import { MaterialReactTable, type MRT_ColumnDef } from '../../src';
 import { faker } from '@faker-js/faker';
+import { useEffect, useRef, useState } from 'react';
+import {
+  type MRT_ColumnFiltersState,
+  type MRT_VisibilityState,
+  type MRT_SortingState,
+  type MRT_ColumnOrderState,
+} from '../../src/types';
 
 const meta: Meta = {
   title: 'Circuland/Features Demo',
@@ -190,50 +197,123 @@ const data = [...Array(100)].map(() => ({
   updated_at: faker.date.recent().toISOString(),
 }));
 
-export const CirculandFeatures = () => (
-  <MaterialReactTable
-    columns={columns}
-    data={data}
-    // Enable both new features
-    show_column_actions_on_hover={true}
-    enable_column_search_in_show_hide_menu={true}
-    // Additional useful features for Circuland
-    enableColumnResizing
-    enableColumnOrdering
-    enablePinning
-    enableRowSelection
-    enableColumnFilters
-    enableFilters
-    enableDensityToggle
-    enableFullScreenToggle
-    enableHiding
-    enablePagination
-    initialState={{
-      density: 'compact',
-      // Initially hide some less frequently used columns
-      columnVisibility: {
-        notes: false,
-        created_at: false,
-        updated_at: false,
-        inspector: false,
-        inspection_date: false,
-        batch_number: false,
-      },
-      // Show more rows per page by default
-      pagination: {
-        pageSize: 25,
-        pageIndex: 0,
-      },
-      // Initial sorting
-      sorting: [
-        {
-          id: 'status',
-          desc: false,
+interface TableState {
+  column_visibility: MRT_VisibilityState;
+  column_sizing: Record<string, number>;
+  sorting: MRT_SortingState;
+  column_order: MRT_ColumnOrderState;
+}
+
+export const CirculandFeatures = ({ table_id = 'circuland-table-1' }) => {
+  const is_first_render = useRef(true);
+
+  // Consolidated state management with proper typing
+  const [table_state, set_table_state] = useState<TableState>({
+    column_visibility: {},
+    column_sizing: {},
+    sorting: [],
+    column_order: [],
+  });
+
+  // Load state from localStorage on mount
+  useEffect(() => {
+    const stored_state = localStorage.getItem(`table_state_${table_id}`);
+    if (stored_state) {
+      set_table_state(JSON.parse(stored_state));
+    }
+    is_first_render.current = false;
+  }, [table_id]);
+
+  // Save consolidated state to localStorage when any part changes
+  useEffect(() => {
+    if (is_first_render.current) return;
+    localStorage.setItem(
+      `table_state_${table_id}`,
+      JSON.stringify(table_state),
+    );
+  }, [table_state, table_id]);
+
+  // Individual state setters that update the consolidated state
+  const handle_column_visibility_change = (
+    updater:
+      | MRT_VisibilityState
+      | ((prev: MRT_VisibilityState) => MRT_VisibilityState),
+  ) => {
+    const new_value =
+      typeof updater === 'function'
+        ? updater(table_state.column_visibility)
+        : updater;
+    set_table_state((prev) => ({ ...prev, column_visibility: new_value }));
+  };
+
+  const handle_column_sizing_change = (
+    updater:
+      | Record<string, number>
+      | ((prev: Record<string, number>) => Record<string, number>),
+  ) => {
+    const new_value =
+      typeof updater === 'function'
+        ? updater(table_state.column_sizing)
+        : updater;
+    set_table_state((prev) => ({ ...prev, column_sizing: new_value }));
+  };
+
+  const handle_sorting_change = (
+    updater: MRT_SortingState | ((prev: MRT_SortingState) => MRT_SortingState),
+  ) => {
+    const new_value =
+      typeof updater === 'function' ? updater(table_state.sorting) : updater;
+    set_table_state((prev) => ({ ...prev, sorting: new_value }));
+  };
+
+  const handle_column_order_change = (
+    updater:
+      | MRT_ColumnOrderState
+      | ((prev: MRT_ColumnOrderState) => MRT_ColumnOrderState),
+  ) => {
+    const new_value =
+      typeof updater === 'function'
+        ? updater(table_state.column_order)
+        : updater;
+    set_table_state((prev) => ({ ...prev, column_order: new_value }));
+  };
+
+  return (
+    <MaterialReactTable
+      columns={columns}
+      data={data}
+      show_column_actions_on_hover={true}
+      enable_column_search_in_show_hide_menu={true}
+      enableColumnResizing
+      enableColumnOrdering
+      enablePinning
+      enableRowSelection
+      enableColumnFilters
+      enableFilters
+      enableDensityToggle
+      enableFullScreenToggle
+      enableHiding
+      enablePagination
+      onColumnVisibilityChange={handle_column_visibility_change}
+      onColumnSizingChange={handle_column_sizing_change}
+      onSortingChange={handle_sorting_change}
+      onColumnOrderChange={handle_column_order_change}
+      state={{
+        columnVisibility: table_state.column_visibility,
+        columnSizing: table_state.column_sizing,
+        sorting: table_state.sorting,
+        columnOrder: table_state.column_order,
+      }}
+      initialState={{
+        density: 'compact',
+        pagination: {
+          pageSize: 25,
+          pageIndex: 0,
         },
-      ],
-    }}
-  />
-);
+      }}
+    />
+  );
+};
 
 export const CirculandFeaturesWithCustomVisibility = () => (
   <MaterialReactTable
