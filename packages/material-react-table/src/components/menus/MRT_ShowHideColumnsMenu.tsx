@@ -3,6 +3,7 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Menu, { type MenuProps } from '@mui/material/Menu';
+import TextField from '@mui/material/TextField';
 import { MRT_ShowHideColumnsMenuItems } from './MRT_ShowHideColumnsMenuItems';
 import {
   type MRT_Column,
@@ -40,11 +41,13 @@ export const MRT_ShowHideColumnsMenu = <TData extends MRT_RowData>({
       enableColumnOrdering,
       enableColumnPinning,
       enableHiding,
+      enable_column_search_in_show_hide_menu,
       localization,
       mrtTheme: { menuBackgroundColor },
     },
   } = table;
   const { columnOrder, columnPinning, density } = getState();
+  const [search_value, set_search_value] = useState('');
 
   const handleToggleAllColumns = (value?: boolean) => {
     getAllLeafColumns()
@@ -76,6 +79,16 @@ export const MRT_ShowHideColumnsMenu = <TData extends MRT_RowData>({
     getRightLeafColumns(),
   ]) as MRT_Column<TData>[];
 
+  const filtered_columns = useMemo(() => {
+    if (!search_value) return allColumns;
+    return allColumns.filter((col) =>
+      col.columnDef.header
+        ?.toString()
+        .toLowerCase()
+        .includes(search_value.toLowerCase()),
+    );
+  }, [allColumns, search_value]);
+
   const isNestedColumns = allColumns.some(
     (col) => col.columnDef.columnDefType === 'group',
   );
@@ -86,7 +99,6 @@ export const MRT_ShowHideColumnsMenu = <TData extends MRT_RowData>({
       !columnOrder.every(
         (column, index) => column === initialState.columnOrder[index],
       ),
-
     [columnOrder, initialState.columnOrder],
   );
 
@@ -94,17 +106,33 @@ export const MRT_ShowHideColumnsMenu = <TData extends MRT_RowData>({
     null,
   );
 
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.stopPropagation();
+    set_search_value(event.target.value);
+  };
+
   return (
     <Menu
       MenuListProps={{
         dense: density === 'compact',
         sx: {
           backgroundColor: menuBackgroundColor,
+          minWidth: '220px',
+          maxHeight: '400px',
+        },
+        onKeyDown: (e) => {
+          // Prevent menu keyboard navigation when searching
+          if (enable_column_search_in_show_hide_menu) {
+            e.stopPropagation();
+          }
         },
       }}
       anchorEl={anchorEl}
       disableScrollLock
-      onClose={() => setAnchorEl(null)}
+      onClose={() => {
+        setAnchorEl(null);
+        set_search_value('');
+      }}
       open={!!anchorEl}
       {...rest}
     >
@@ -153,18 +181,50 @@ export const MRT_ShowHideColumnsMenu = <TData extends MRT_RowData>({
           </Button>
         )}
       </Box>
+      {enable_column_search_in_show_hide_menu && (
+        <>
+          <Divider />
+          <Box
+            sx={{
+              p: '0.5rem',
+              position: 'sticky',
+              top: 0,
+              backgroundColor: menuBackgroundColor,
+              zIndex: 1,
+            }}
+          >
+            <TextField
+              fullWidth
+              placeholder={localization.search}
+              size="small"
+              value={search_value}
+              onChange={handleSearchChange}
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+              autoFocus
+              sx={{
+                '& .MuiInputBase-root': {
+                  backgroundColor: 'background.paper',
+                },
+              }}
+            />
+          </Box>
+        </>
+      )}
       <Divider />
-      {allColumns.map((column, index) => (
-        <MRT_ShowHideColumnsMenuItems
-          allColumns={allColumns}
-          column={column}
-          hoveredColumn={hoveredColumn}
-          isNestedColumns={isNestedColumns}
-          key={`${index}-${column.id}`}
-          setHoveredColumn={setHoveredColumn}
-          table={table}
-        />
-      ))}
+      <Box sx={{ maxHeight: '300px', overflow: 'auto' }}>
+        {filtered_columns.map((column, index) => (
+          <MRT_ShowHideColumnsMenuItems
+            allColumns={allColumns}
+            column={column}
+            hoveredColumn={hoveredColumn}
+            isNestedColumns={isNestedColumns}
+            key={`${index}-${column.id}`}
+            setHoveredColumn={setHoveredColumn}
+            table={table}
+          />
+        ))}
+      </Box>
     </Menu>
   );
 };

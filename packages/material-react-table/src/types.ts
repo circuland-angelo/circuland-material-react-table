@@ -1285,4 +1285,5 @@ export interface MRT_TableOptions<TData extends MRT_RowData>
    */
   state?: Partial<MRT_TableState<TData>>;
   show_column_actions_on_hover?: boolean;
+  enable_column_search_in_show_hide_menu?: boolean;
 }
