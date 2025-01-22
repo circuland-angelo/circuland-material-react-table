@@ -154,7 +154,7 @@ const columns: MRT_ColumnDef<CirculandItem>[] = [
   },
 ];
 
-const data = [...Array(100)].map(() => ({
+const data = [...Array(1000)].map(() => ({
   id: faker.string.uuid(),
   item_name: faker.commerce.productName(),
   item_description: faker.commerce.productDescription(),
@@ -293,7 +293,18 @@ export const CirculandFeatures = ({ table_id = 'circuland-table-1' }) => {
       enableDensityToggle
       enableFullScreenToggle
       enableHiding
-      enablePagination
+      enablePagination={false}
+      enableRowVirtualization
+      enableColumnVirtualization
+      layoutMode="grid"
+      muiTableContainerProps={{
+        sx: { maxHeight: '600px' },
+      }}
+      muiTableBodyRowProps={{
+        sx: {
+          height: '40px',
+        },
+      }}
       onColumnVisibilityChange={handle_column_visibility_change}
       onColumnSizingChange={handle_column_sizing_change}
       onSortingChange={handle_sorting_change}
@@ -306,10 +317,6 @@ export const CirculandFeatures = ({ table_id = 'circuland-table-1' }) => {
       }}
       initialState={{
         density: 'compact',
-        pagination: {
-          pageSize: 25,
-          pageIndex: 0,
-        },
       }}
     />
   );
@@ -330,10 +337,20 @@ export const CirculandFeaturesWithCustomVisibility = () => (
     enableDensityToggle
     enableFullScreenToggle
     enableHiding
-    enablePagination
+    enablePagination={false}
+    enableRowVirtualization
+    enableColumnVirtualization
+    layoutMode="grid"
+    muiTableContainerProps={{
+      sx: { maxHeight: '600px' },
+    }}
+    muiTableBodyRowProps={{
+      sx: {
+        height: '40px',
+      },
+    }}
     initialState={{
       density: 'compact',
-      // Show only essential columns initially
       columnVisibility: {
         item_description: false,
         sub_category: false,
@@ -354,14 +371,9 @@ export const CirculandFeaturesWithCustomVisibility = () => (
         created_at: false,
         updated_at: false,
       },
-      // Pin important columns
       columnPinning: {
         left: ['item_name', 'category'],
         right: ['status', 'quantity'],
-      },
-      pagination: {
-        pageSize: 25,
-        pageIndex: 0,
       },
       sorting: [
         {

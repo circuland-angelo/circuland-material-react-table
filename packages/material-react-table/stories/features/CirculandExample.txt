@@ -1,0 +1,60 @@
+// Basic usage with all features
+<MaterialReactTable
+  columns={your_columns}
+  data={your_data}
+  show_column_actions_on_hover={true}
+  enable_column_search_in_show_hide_menu={true}
+  enableColumnResizing
+  enableColumnOrdering
+  enablePinning
+  enableRowSelection
+  enableColumnFilters
+  enableFilters
+  enableDensityToggle
+  enableFullScreenToggle
+  enableHiding
+  enablePagination
+  initialState={{
+    density: 'compact',
+    pagination: {
+      pageSize: 25,
+      pageIndex: 0,
+    }
+  }}
+/>
+
+// Or if you want to start with certain columns hidden and pinned
+<MaterialReactTable
+  columns={your_columns}
+  data={your_data}
+  show_column_actions_on_hover={true}
+  enable_column_search_in_show_hide_menu={true}
+  enableColumnResizing
+  enableColumnOrdering
+  enablePinning
+  enableRowSelection
+  enableColumnFilters
+  enableFilters
+  enableDensityToggle
+  enableFullScreenToggle
+  enableHiding
+  enablePagination
+  initialState={{
+    density: 'compact',
+    columnVisibility: {
+      // Hide less frequently used columns
+      notes: false,
+      created_at: false,
+      updated_at: false,
+      // ... other columns to hide
+    },
+    columnPinning: {
+      left: ['item_name', 'category'],
+      right: ['status', 'quantity']
+    },
+    pagination: {
+      pageSize: 25,
+      pageIndex: 0
+    }
+  }}
+/>
